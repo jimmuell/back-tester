@@ -25,6 +25,9 @@ out/
 .idea/
 .vscode/
 
+# Generated reports (build output)
+reports/
+
 # Data — raw data is non-redistributable; only committed sample is allowed
 /data/**
 !/data/sample/

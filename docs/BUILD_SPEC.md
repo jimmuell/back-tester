@@ -89,4 +89,4 @@ Trade-off accepted: inherits TradingView's fill assumptions and is a multi-step 
 
 ## Stack
 
-Python 3.11+, pandas, numpy, scipy, statsmodels; pytest; ruff + mypy. Node 20+, Next.js, React, TypeScript, Tailwind, shadcn/ui, TanStack Query, lightweight-charts, uPlot, Recharts. Research/backtesting only — no live trading or order placement.
+Python 3.12+, pandas, numpy, scipy, statsmodels; pytest; ruff + mypy. Node 20+, Next.js, React, TypeScript, Tailwind, shadcn/ui, TanStack Query, lightweight-charts, uPlot, Recharts. Research/backtesting only — no live trading or order placement.
