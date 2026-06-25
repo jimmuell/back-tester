@@ -4,12 +4,23 @@ import csv
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Literal
+from zoneinfo import ZoneInfo
 
 import numpy as np
+import pandas as pd
 
+from engine.ingest.firstrate import Adjustment, BarSet, Timeframe
 from engine.ingest.models import Trade
 from engine.instruments import MES, Instrument
 from engine.timeutils import ET
+
+_TF_MINUTES: dict[str, int] = {
+    "1min": 1,
+    "5min": 5,
+    "30min": 30,
+    "1hour": 60,
+    "1day": 1440,
+}
 
 # Single source of truth for the TradingView "List of Trades" CSV columns.
 TRADINGVIEW_COLUMNS = [
@@ -150,6 +161,87 @@ def generate_trades(
         current_date += timedelta(days=1)
 
     return trades
+
+
+def generate_bars(
+    *,
+    timeframe: Timeframe = "1day",
+    n_bars: int = 252,
+    seed: int = 42,
+    start: date = date(2024, 1, 2),
+    start_price: float = 5000.0,
+    daily_vol: float = 0.01,
+    symbol: str = "ES",
+    adjustment: Adjustment = "ratio",
+) -> BarSet:
+    """Generate a reproducible seeded synthetic OHLCV BarSet via a GBM random walk.
+
+    OHLC invariants guaranteed: high >= max(O,C,L) and low <= min(O,C,H).
+    Timestamps are UTC-aware, weekday-spaced. Intraday uses RTH 09:30-16:00 ET
+    (14:30-21:00 UTC, assuming EST / UTC-5 year-round for simplicity).
+    """
+    UTC = ZoneInfo("UTC")
+    rng = np.random.default_rng(seed)
+    tf_min = _TF_MINUTES[timeframe]
+
+    # ── Generate UTC timestamps ───────────────────────────────────────────────
+    timestamps: list[pd.Timestamp] = []
+    d = start
+    if timeframe == "1day":
+        while len(timestamps) < n_bars:
+            if d.weekday() < 5:
+                timestamps.append(pd.Timestamp(d, tz="UTC"))
+            d += timedelta(days=1)
+    else:
+        # RTH 09:30–16:00 ET = 14:30–21:00 UTC (EST = UTC-5)
+        rth_open_min = 14 * 60 + 30
+        rth_close_min = 21 * 60
+        session_bars = (rth_close_min - rth_open_min) // tf_min
+        while len(timestamps) < n_bars:
+            if d.weekday() < 5:
+                for i in range(session_bars):
+                    if len(timestamps) >= n_bars:
+                        break
+                    total_min = rth_open_min + i * tf_min
+                    h, m = divmod(total_min, 60)
+                    timestamps.append(pd.Timestamp(d.year, d.month, d.day, h, m, tzinfo=UTC))
+            d += timedelta(days=1)
+
+    # ── Price series via GBM ──────────────────────────────────────────────────
+    bar_vol = daily_vol if timeframe == "1day" else daily_vol * np.sqrt(tf_min / 390.0)
+    log_returns = rng.normal(0.0, bar_vol, size=n_bars)
+    close_arr = start_price * np.exp(np.cumsum(log_returns))
+
+    # open: near prior close; first open = start_price
+    gap_noise = rng.normal(0.0, bar_vol * 0.1, size=n_bars)
+    open_arr = np.empty(n_bars)
+    open_arr[0] = start_price
+    open_arr[1:] = close_arr[:-1] * np.exp(gap_noise[1:])
+
+    # high and low: extend beyond the O/C range by a half-bar-vol fraction of price
+    avg_price = (open_arr + close_arr) / 2.0
+    hi_ext = np.abs(rng.normal(0.0, bar_vol, size=n_bars)) * avg_price
+    lo_ext = np.abs(rng.normal(0.0, bar_vol, size=n_bars)) * avg_price
+    high_arr = np.maximum(open_arr, close_arr) + hi_ext
+    low_arr = np.minimum(open_arr, close_arr) - lo_ext
+    low_arr = np.maximum(low_arr, 0.01)
+
+    volume_arr = rng.integers(1_000, 50_000, size=n_bars).astype(float)
+
+    # ── Assemble BarSet ───────────────────────────────────────────────────────
+    idx = pd.DatetimeIndex(timestamps, name="timestamp")
+    df = pd.DataFrame(
+        {
+            "open": open_arr,
+            "high": high_arr,
+            "low": low_arr,
+            "close": close_arr,
+            "volume": volume_arr,
+        },
+        index=idx,
+        dtype=float,
+    )
+    return BarSet(symbol=symbol, timeframe=timeframe, adjustment=adjustment, df=df)
 
 
 def write_tradingview_csv(trades: list[Trade], path: Path) -> None:
