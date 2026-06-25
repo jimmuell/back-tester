@@ -31,7 +31,7 @@ Python 3.12+, pandas, numpy, scipy, statsmodels, pytest, ruff, mypy. Node 20+, N
 
 ## Build order (current)
 
-Slice 0 thin pipe (trade list → metrics → report, no UI/DB) → 1 FastAPI + minimal UI → 2 Monte Carlo/OOS/walk-forward/benchmarks/regime → 3 Supabase persistence → 4 strategy input + Pine generation → 5 multiple-testing controls + prop-firm simulator. Details in `docs/BUILD_SPEC.md`.
+Slice 0 thin pipe (trade list → metrics → report, no UI/DB) → **Monte Carlo + core statistical validation (engine-first, per ADR-012)** → FastAPI + minimal UI → OOS/walk-forward/regimes/benchmarks → Supabase persistence → strategy input + Pine generation → multiple-testing controls + prop-firm simulator. Details in `docs/BUILD_SPEC.md`.
 
 ## Key docs
 

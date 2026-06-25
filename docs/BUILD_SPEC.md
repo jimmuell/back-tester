@@ -79,6 +79,8 @@ Trade-off accepted: inherits TradingView's fill assumptions and is a multi-step 
 
 ## MVP scope & phasing
 
+Execution order updated (ADR-012): the statistical engine (Monte Carlo + validation) is built before the FastAPI/Next.js UI. Slice numbers below are indicative, not strict.
+
 - **Slice 0** (thin, no UI/DB): engine ingest TradingView trade list → core metrics → HTML report. Driven by a script + pytest. Proves the pipe end-to-end.
 - **Slice 1**: wrap in FastAPI + minimal Next.js UI (upload trade list, view report).
 - **Slice 2**: Monte Carlo (shuffle + bootstrap), IS/OOS, walk-forward, benchmarks, regime tagging on ES bars.
