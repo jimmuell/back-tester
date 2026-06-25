@@ -4,8 +4,7 @@ import csv
 import re
 from datetime import datetime
 from pathlib import Path
-
-import pytz
+from zoneinfo import ZoneInfo
 
 from engine.ingest.models import Trade
 from engine.ingest.synthetic import TRADINGVIEW_COLUMNS
@@ -58,10 +57,10 @@ _DT_FORMATS = [
 ]
 
 
-def _parse_dt(raw: str, tz: pytz.BaseTzInfo) -> datetime:
+def _parse_dt(raw: str, tz: ZoneInfo) -> datetime:
     for fmt in _DT_FORMATS:
         try:
-            return tz.localize(datetime.strptime(raw.strip(), fmt))
+            return datetime.strptime(raw.strip(), fmt).replace(tzinfo=tz)
         except ValueError:
             continue
     raise TradeListFormatError(f"Unrecognised date/time format: {raw!r}")
@@ -92,14 +91,14 @@ def _map_columns(header: list[str]) -> dict[str, int]:
     return mapping
 
 
-def load_trades(path: Path, *, tz: str = "US/Eastern") -> list[Trade]:
+def load_trades(path: Path, *, tz: str = "America/New_York") -> list[Trade]:
     """
     Load a TradingView 'List of Trades' CSV and return paired Trade records.
 
     Pairs entry/exit rows by Trade #. Tolerant of column-name variants and whitespace.
     Raises TradeListFormatError with a clear message on unrecognised shape.
     """
-    timezone = pytz.timezone(tz)
+    timezone = ZoneInfo(tz)
 
     with open(path, newline="") as f:
         reader = csv.reader(f)

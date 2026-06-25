@@ -4,18 +4,15 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-import pytz
-
 from engine.config import APP_NAME
 from engine.ingest.models import Trade
 from engine.metrics.core import compute_metrics
 from engine.report.html import render_report, write_report
-
-_ET = pytz.timezone("US/Eastern")
+from engine.timeutils import to_et
 
 
 def _dt(s: str) -> datetime:
-    return _ET.localize(datetime.strptime(s, "%Y-%m-%d %H:%M"))
+    return to_et(datetime.strptime(s, "%Y-%m-%d %H:%M"))
 
 
 def _sample_metrics() -> object:

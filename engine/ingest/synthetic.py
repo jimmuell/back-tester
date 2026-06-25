@@ -6,10 +6,10 @@ from pathlib import Path
 from typing import Literal
 
 import numpy as np
-import pytz
 
 from engine.ingest.models import Trade
 from engine.instruments import MES, Instrument
+from engine.timeutils import ET
 
 # Single source of truth for the TradingView "List of Trades" CSV columns.
 TRADINGVIEW_COLUMNS = [
@@ -29,7 +29,6 @@ TRADINGVIEW_COLUMNS = [
 _RTH_OPEN = (9, 30)   # 09:30 ET
 _RTH_CLOSE = (16, 0)  # 16:00 ET
 _RTH_MINUTES = (16 * 60) - (9 * 60 + 30)  # 390 minutes
-_ET = pytz.timezone("US/Eastern")
 
 
 def _is_weekday(d: date) -> bool:
@@ -41,7 +40,7 @@ def _rth_time(d: date, rng: np.random.Generator, margin_minutes: int = 30) -> da
     lo = margin_minutes
     hi = _RTH_MINUTES - margin_minutes
     minute_offset = int(rng.integers(lo, hi))
-    t = datetime(d.year, d.month, d.day, _RTH_OPEN[0], _RTH_OPEN[1], tzinfo=_ET)
+    t = datetime(d.year, d.month, d.day, _RTH_OPEN[0], _RTH_OPEN[1], tzinfo=ET)
     return t + timedelta(minutes=minute_offset)
 
 
@@ -99,7 +98,7 @@ def generate_trades(
         for i, entry_min in enumerate(entry_minutes):
             entry_dt = datetime(
                 current_date.year, current_date.month, current_date.day,
-                _RTH_OPEN[0], _RTH_OPEN[1], tzinfo=_ET,
+                _RTH_OPEN[0], _RTH_OPEN[1], tzinfo=ET,
             ) + timedelta(minutes=int(entry_min))
 
             hold_minutes = int(rng.integers(5, 45))
@@ -107,7 +106,7 @@ def generate_trades(
             if exit_dt.hour >= _RTH_CLOSE[0]:
                 exit_dt = datetime(
                     current_date.year, current_date.month, current_date.day,
-                    _RTH_CLOSE[0] - 1, 55, tzinfo=_ET,
+                    _RTH_CLOSE[0] - 1, 55, tzinfo=ET,
                 )
 
             is_win = rng.random() < wr

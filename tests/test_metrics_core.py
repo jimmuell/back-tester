@@ -2,16 +2,13 @@ from __future__ import annotations
 
 from datetime import datetime
 
-import pytz
-
 from engine.ingest.models import Trade
 from engine.metrics.core import compute_metrics
-
-_ET = pytz.timezone("US/Eastern")
+from engine.timeutils import to_et
 
 
 def _dt(s: str) -> datetime:
-    return _ET.localize(datetime.strptime(s, "%Y-%m-%d %H:%M"))
+    return to_et(datetime.strptime(s, "%Y-%m-%d %H:%M"))
 
 
 def _make_trade(trade_id: int, pnl: float) -> Trade:
