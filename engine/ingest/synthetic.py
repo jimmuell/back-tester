@@ -171,10 +171,14 @@ def generate_bars(
     start: date = date(2024, 1, 2),
     start_price: float = 5000.0,
     daily_vol: float = 0.01,
+    drift: float = 0.0,
     symbol: str = "ES",
     adjustment: Adjustment = "ratio",
 ) -> BarSet:
     """Generate a reproducible seeded synthetic OHLCV BarSet via a GBM random walk.
+
+    drift: per-bar mean log-return (0.0 = no trend). Use e.g. 0.003 for a strong
+    uptrend or -0.003 for a downtrend. Default 0.0 preserves existing behavior.
 
     OHLC invariants guaranteed: high >= max(O,C,L) and low <= min(O,C,H).
     Timestamps are UTC-aware, weekday-spaced. Intraday uses RTH 09:30-16:00 ET
@@ -209,7 +213,7 @@ def generate_bars(
 
     # ── Price series via GBM ──────────────────────────────────────────────────
     bar_vol = daily_vol if timeframe == "1day" else daily_vol * np.sqrt(tf_min / 390.0)
-    log_returns = rng.normal(0.0, bar_vol, size=n_bars)
+    log_returns = rng.normal(drift, bar_vol, size=n_bars)
     close_arr = start_price * np.exp(np.cumsum(log_returns))
 
     # open: near prior close; first open = start_price
