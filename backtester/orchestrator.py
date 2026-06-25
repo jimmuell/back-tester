@@ -3,22 +3,22 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from engine.ingest.firstrate import BarSet
-from engine.ingest.models import Trade
-from engine.instruments import MES, Instrument
-from engine.metrics.core import Metrics, compute_metrics
-from engine.montecarlo.bootstrap import BootstrapResult, run_bootstrap
-from engine.montecarlo.shuffle import ShuffleResult, run_shuffle
-from engine.validation.benchmarks import (
+from backtester.ingest.firstrate import BarSet
+from backtester.ingest.models import Trade
+from backtester.instruments import MES, Instrument
+from backtester.metrics.core import Metrics, compute_metrics
+from backtester.montecarlo.bootstrap import BootstrapResult, run_bootstrap
+from backtester.montecarlo.shuffle import ShuffleResult, run_shuffle
+from backtester.validation.benchmarks import (
     BenchmarkError,
     BuyHoldResult,
     RandomEntryResult,
     buy_and_hold,
     random_entry,
 )
-from engine.validation.regimes import RegimeBreakdown, regime_breakdown
-from engine.validation.splits import SplitResult, in_out_split
-from engine.validation.walkforward import WalkForwardResult, walk_forward
+from backtester.validation.regimes import RegimeBreakdown, regime_breakdown
+from backtester.validation.splits import SplitResult, in_out_split
+from backtester.validation.walkforward import WalkForwardResult, walk_forward
 
 
 @dataclass(frozen=True)

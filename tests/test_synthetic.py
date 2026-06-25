@@ -4,7 +4,7 @@ import csv
 import tempfile
 from pathlib import Path
 
-from engine.ingest.synthetic import generate_trades, write_tradingview_csv
+from backtester.ingest.synthetic import generate_trades, write_tradingview_csv
 
 
 def test_reproducible_same_seed() -> None:

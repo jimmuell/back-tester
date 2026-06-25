@@ -6,11 +6,11 @@ from zoneinfo import ZoneInfo
 import numpy as np
 import pytest
 
-from engine.ingest.firstrate import BarSet
-from engine.ingest.models import Trade
-from engine.ingest.synthetic import generate_bars
-from engine.instruments import MES
-from engine.validation.benchmarks import BenchmarkError, random_entry
+from backtester.ingest.firstrate import BarSet
+from backtester.ingest.models import Trade
+from backtester.ingest.synthetic import generate_bars
+from backtester.instruments import MES
+from backtester.validation.benchmarks import BenchmarkError, random_entry
 
 UTC = ZoneInfo("UTC")
 

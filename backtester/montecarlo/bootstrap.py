@@ -15,7 +15,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from engine.ingest.models import Trade
+from backtester.ingest.models import Trade
 
 _SUPPORTED_CI_LEVELS = {0.90, 0.95, 0.99}
 

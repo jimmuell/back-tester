@@ -4,13 +4,13 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from engine.config import APP_NAME
-from engine.ingest.synthetic import generate_trades, write_tradingview_csv
-from engine.ingest.tradingview import load_trades
-from engine.metrics.core import compute_metrics
-from engine.montecarlo.bootstrap import run_bootstrap
-from engine.montecarlo.shuffle import run_shuffle
-from engine.report.html import write_report
+from backtester.config import APP_NAME
+from backtester.ingest.synthetic import generate_trades, write_tradingview_csv
+from backtester.ingest.tradingview import load_trades
+from backtester.metrics.core import compute_metrics
+from backtester.montecarlo.bootstrap import run_bootstrap
+from backtester.montecarlo.shuffle import run_shuffle
+from backtester.report.html import write_report
 
 REPORTS_DIR = Path(__file__).parent.parent / "reports"
 

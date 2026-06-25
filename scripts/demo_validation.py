@@ -5,16 +5,16 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from engine.config import APP_NAME
-from engine.ingest.models import Trade
-from engine.ingest.synthetic import generate_trades, write_tradingview_csv
-from engine.ingest.tradingview import load_trades
-from engine.metrics.core import compute_metrics
-from engine.montecarlo.bootstrap import run_bootstrap
-from engine.montecarlo.shuffle import run_shuffle
-from engine.report.html import write_report
-from engine.validation.splits import in_out_split
-from engine.validation.walkforward import walk_forward
+from backtester.config import APP_NAME
+from backtester.ingest.models import Trade
+from backtester.ingest.synthetic import generate_trades, write_tradingview_csv
+from backtester.ingest.tradingview import load_trades
+from backtester.metrics.core import compute_metrics
+from backtester.montecarlo.bootstrap import run_bootstrap
+from backtester.montecarlo.shuffle import run_shuffle
+from backtester.report.html import write_report
+from backtester.validation.splits import in_out_split
+from backtester.validation.walkforward import walk_forward
 
 REPORTS_DIR = Path(__file__).parent.parent / "reports"
 
@@ -29,7 +29,7 @@ def _load_via_csv(trades: list[Trade]) -> list[Trade]:
 
 
 def _print_split(label: str, sp: object) -> None:
-    from engine.validation.splits import SplitResult
+    from backtester.validation.splits import SplitResult
     assert isinstance(sp, SplitResult)
     flag = "⚠ DECAYED" if sp.edge_decayed else "  stable "
     ratio_str = (
@@ -45,7 +45,7 @@ def _print_split(label: str, sp: object) -> None:
 
 
 def _print_walk(label: str, wf: object) -> None:
-    from engine.validation.walkforward import WalkForwardResult
+    from backtester.validation.walkforward import WalkForwardResult
     assert isinstance(wf, WalkForwardResult)
     exps = [f"{w.expectancy:+.2f}" for w in wf.windows]
     print(

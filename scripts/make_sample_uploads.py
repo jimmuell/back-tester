@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from engine.ingest.synthetic import generate_bars, generate_trades, write_tradingview_csv
+from backtester.ingest.synthetic import generate_bars, generate_trades, write_tradingview_csv
 
 
 def write_firstrate_csv(bars_path: Path, n_bars: int, seed: int) -> None:

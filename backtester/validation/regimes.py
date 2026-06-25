@@ -7,9 +7,9 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 
-from engine.ingest.firstrate import BarSet
-from engine.ingest.models import Trade
-from engine.metrics.core import Metrics, compute_metrics
+from backtester.ingest.firstrate import BarSet
+from backtester.ingest.models import Trade
+from backtester.metrics.core import Metrics, compute_metrics
 
 RegimeScheme = Literal["trend", "volatility"]
 

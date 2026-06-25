@@ -4,11 +4,11 @@ from datetime import datetime
 
 import pytest
 
-from engine.ingest.models import Trade
-from engine.ingest.synthetic import generate_trades
-from engine.metrics.core import compute_metrics
-from engine.montecarlo.bootstrap import run_bootstrap
-from engine.timeutils import to_et
+from backtester.ingest.models import Trade
+from backtester.ingest.synthetic import generate_trades
+from backtester.metrics.core import compute_metrics
+from backtester.montecarlo.bootstrap import run_bootstrap
+from backtester.timeutils import to_et
 
 _N_ITER = 2_000   # fast enough for CI, sufficient for stable percentiles
 

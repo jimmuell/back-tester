@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from engine.ingest.firstrate import BarDataError, load_bars
+from backtester.ingest.firstrate import BarDataError, load_bars
 
 FIXTURES = Path(__file__).parent / "fixtures"
 F5MIN = FIXTURES / "es_5min_sample.csv"

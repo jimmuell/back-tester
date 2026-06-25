@@ -7,11 +7,11 @@ from pathlib import Path
 
 import numpy as np
 
-from engine import ValidationConfig, ValidationResult, validate
-from engine.ingest.models import Trade
-from engine.ingest.synthetic import generate_bars
-from engine.instruments import MES
-from engine.report.html import write_full_report
+from backtester import ValidationConfig, ValidationResult, validate
+from backtester.ingest.models import Trade
+from backtester.ingest.synthetic import generate_bars
+from backtester.instruments import MES
+from backtester.report.html import write_full_report
 
 APP_NAME = os.getenv("APP_NAME", "BackTester")
 

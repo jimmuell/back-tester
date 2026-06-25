@@ -18,5 +18,5 @@ pip install -U pip
 pip install -e ".[dev]"
 pytest -q                        # 2 passed
 ruff check .
-mypy engine
+mypy backtester backend
 ```

@@ -13,7 +13,7 @@ The display name is configurable from one source of truth. Default: `"BackTester
 ## Three-tier architecture
 
 ```
-Next.js (UI)  ──HTTP/JSON──▶  FastAPI (API)  ──direct──▶  engine/ (pure-Python validation lib)
+Next.js (UI)  ──HTTP/JSON──▶  FastAPI (API)  ──direct──▶  backtester/ (pure-Python validation lib)
      │                              │
      │                              └──asyncpg/SQLAlchemy──▶  Postgres (local Supabase)
      └── Supabase Auth (deferred to SaaS phase)
@@ -21,7 +21,7 @@ Next.js (UI)  ──HTTP/JSON──▶  FastAPI (API)  ──direct──▶  en
 
 - **Frontend** — Next.js (App Router), React, TypeScript, Tailwind, shadcn/ui, TanStack Query. Charts: lightweight-charts (canvas) for equity/price; uPlot (canvas) for many-series Monte Carlo fans; Recharts only for small KPI/summary visuals.
 - **Backend** — FastAPI (async). Long runs use a job pattern: submit → job_id → progress via SSE/websocket → results. Connects directly to Postgres (not via Supabase REST) for full SQL and fast bulk inserts.
-- **`engine/`** — a pure-Python package (pandas/numpy/scipy/statsmodels) with no web or DB dependencies, unit-testable in isolation. This is where all of `DESIGN.md` lives.
+- **`backtester/`** — a pure-Python package (pandas/numpy/scipy/statsmodels) installable as `import backtester`, with no web or DB dependencies, unit-testable in isolation. This is where all of `DESIGN.md` lives.
 - **Persistence** — local Supabase (Postgres + Studio + migrations in `supabase/migrations/`). Requires Docker Desktop running. Separate instance from the Lovable tradinggym project.
 
 ## Repo layout
@@ -30,7 +30,7 @@ Next.js (UI)  ──HTTP/JSON──▶  FastAPI (API)  ──direct──▶  en
 backtester/
 ├── CLAUDE.md
 ├── docs/            DESIGN.md, BUILD_SPEC.md, DIVISION_OF_LABOR.md, DECISIONS.md
-├── engine/          pure-Python validation library + tests
+├── backtester/      pure-Python validation library (import backtester)
 │   ├── ingest/      trade-list + bar-data loaders
 │   ├── metrics/     KPIs, Sharpe CI, drawdown, etc.
 │   ├── montecarlo/  shuffle, bootstrap, block
@@ -38,7 +38,7 @@ backtester/
 │   ├── propsim/     prop-firm challenge engine (Phase 2)
 │   ├── strategy/    canonical Strategy Spec model + Pine generator (Phase 2)
 │   └── report/      HTML report builder
-├── backend/         FastAPI app (imports engine/)
+├── backend/         FastAPI app (imports backtester)
 ├── frontend/        Next.js app
 ├── supabase/        config.toml + migrations/
 ├── data/            gitignored; small committed sample under data/sample/
@@ -48,7 +48,7 @@ backtester/
 
 ## Data contracts
 
-### Bar data — FirstRate ES (loader: `engine/ingest/firstrate.py`)
+### Bar data — FirstRate ES (loader: `backtester/ingest/firstrate.py`)
 
 - CSV, US Eastern (EST/EDT), no header by default.
 - Columns: `timestamp, open, high, low, close, volume`; 1day files add a trailing `open_interest` column. Zero-volume bars are absent.
@@ -56,12 +56,12 @@ backtester/
 - Timeframes available: 1min, 5min, 30min, 1hour, 1day (history to ~2007).
 - License: raw FirstRate data must not be redistributed → in SaaS, users supply their own; ship only a tiny illustrative sample in `data/sample/`.
 
-### Trade list — TradingView "List of Trades" export (loader: `engine/ingest/tradingview.py`)
+### Trade list — TradingView "List of Trades" export (loader: `backtester/ingest/tradingview.py`)
 
 - Accept CSV/XLSX. Pair entry/exit rows into one trade record. Be tolerant of column-name and version drift; validate and surface a clear error on unrecognized shape.
 - Canonical internal trade record: `trade_id, direction(long/short), entry_time, entry_price, exit_time, exit_price, qty, pnl_gross, pnl_net, fees, bars_held, mae, mfe, tags{}`.
 
-### Strategy Spec — canonical internal model (`engine/strategy/spec.py`, Phase 2)
+### Strategy Spec — canonical internal model (`backtester/strategy/spec.py`, Phase 2)
 
 One schema, two producers (manual UI form and transcript extraction): `meta{name, instrument, timeframes{context, execution, trigger}, sessions, max_trades_per_day}`, `bias[]` (HTF PD-array rules → bias state), `setup{leg/fib, discount/premium thresholds, tolerance}`, `entry_trigger{LTF PD-array, wait_n_bars}`, `exit{stop+buffer, target rule, min_R}`, `risk{qty, commission, slippage}`, `supported_primitives[], unsupported_flags[], assumptions[]`.
 
@@ -81,7 +81,7 @@ Trade-off accepted: inherits TradingView's fill assumptions and is a multi-step 
 
 Execution order updated (ADR-012): the statistical engine (Monte Carlo + validation) is built before the FastAPI/Next.js UI. Slice numbers below are indicative, not strict.
 
-- **Slice 0** (thin, no UI/DB): engine ingest TradingView trade list → core metrics → HTML report. Driven by a script + pytest. Proves the pipe end-to-end.
+- **Slice 0** (thin, no UI/DB): backtester ingests TradingView trade list → core metrics → HTML report. Driven by a script + pytest. Proves the pipe end-to-end.
 - **Slice 1**: wrap in FastAPI + minimal Next.js UI (upload trade list, view report).
 - **Slice 2**: Monte Carlo (shuffle + bootstrap), IS/OOS, walk-forward, benchmarks, regime tagging on ES bars.
 - **Slice 3**: local Supabase persistence — runs, strategies, results history.

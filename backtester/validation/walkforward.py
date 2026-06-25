@@ -13,8 +13,8 @@ from datetime import datetime
 
 import numpy as np
 
-from engine.ingest.models import Trade
-from engine.metrics.core import compute_metrics
+from backtester.ingest.models import Trade
+from backtester.metrics.core import compute_metrics
 
 
 @dataclass(frozen=True)

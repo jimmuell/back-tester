@@ -15,8 +15,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from engine.ingest.models import Trade
-from engine.metrics.core import Metrics, compute_metrics
+from backtester.ingest.models import Trade
+from backtester.metrics.core import Metrics, compute_metrics
 
 
 @dataclass(frozen=True)

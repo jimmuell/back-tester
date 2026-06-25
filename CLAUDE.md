@@ -12,7 +12,7 @@ A Lead Engineer (in Claude.ai) writes specs and reviews your output via the Oper
 
 ## Architecture
 
-Next.js (UI) ↔ FastAPI (API) ↔ `engine/` (pure-Python validation lib) ↔ Postgres (local Supabase). Backend connects directly to Postgres. Supabase Auth/RLS deferred to the SaaS phase. Long runs use a job pattern (submit → job_id → progress stream → results). See `docs/BUILD_SPEC.md`.
+Next.js (UI) ↔ FastAPI (API) ↔ `backtester/` (pure-Python validation lib, importable as `import backtester`) ↔ Postgres (local Supabase). Backend connects directly to Postgres. Supabase Auth/RLS deferred to the SaaS phase. Long runs use a job pattern (submit → job_id → progress stream → results). See `docs/BUILD_SPEC.md`.
 
 ## Rules (bind every session)
 
@@ -32,7 +32,7 @@ Python 3.12+, pandas, numpy, scipy, statsmodels, pytest, ruff, mypy. Node 20+, N
 
 ## Build order (current)
 
-Slice 0 thin pipe (trade list → metrics → report, no UI/DB) → **Monte Carlo + core statistical validation (engine-first, per ADR-012)** → FastAPI + minimal UI → OOS/walk-forward/regimes/benchmarks → Supabase persistence → strategy input + Pine generation → multiple-testing controls + prop-firm simulator. Details in `docs/BUILD_SPEC.md`.
+Slice 0 thin pipe (trade list → metrics → report, no UI/DB) → **Monte Carlo + core statistical validation (backtester-first, per ADR-012)** → FastAPI + minimal UI → OOS/walk-forward/regimes/benchmarks → Supabase persistence → strategy input + Pine generation → multiple-testing controls + prop-firm simulator. Details in `docs/BUILD_SPEC.md`.
 
 ## Key docs
 

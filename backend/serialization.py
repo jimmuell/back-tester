@@ -9,15 +9,15 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from engine.metrics.core import Metrics
-from engine.montecarlo.bootstrap import BootstrapResult
-from engine.montecarlo.shuffle import ShuffleResult
-from engine.orchestrator import ValidationResult
-from engine.validation.benchmarks import BuyHoldResult, RandomEntryResult
-from engine.validation.regimes import RegimeBreakdown
-from engine.validation.splits import SplitResult
-from engine.validation.walkforward import WalkForwardResult
-from engine.verdict import Verdict, summarize
+from backtester.metrics.core import Metrics
+from backtester.montecarlo.bootstrap import BootstrapResult
+from backtester.montecarlo.shuffle import ShuffleResult
+from backtester.orchestrator import ValidationResult
+from backtester.validation.benchmarks import BuyHoldResult, RandomEntryResult
+from backtester.validation.regimes import RegimeBreakdown
+from backtester.validation.splits import SplitResult
+from backtester.validation.walkforward import WalkForwardResult
+from backtester.verdict import Verdict, summarize
 
 
 def _f(v: float) -> float | None:
