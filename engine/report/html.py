@@ -9,6 +9,7 @@ from engine.config import APP_NAME
 from engine.metrics.core import Metrics
 from engine.montecarlo.bootstrap import BootstrapResult
 from engine.montecarlo.shuffle import ShuffleResult
+from engine.validation.benchmarks import BuyHoldResult
 from engine.validation.splits import SplitResult
 from engine.validation.walkforward import WalkForwardResult
 
@@ -344,6 +345,36 @@ def _walkforward_section(wf: WalkForwardResult) -> str:
 </section>"""
 
 
+def _buyhold_section(bh: BuyHoldResult) -> str:
+    beats_cls = "pos" if bh.beats_buy_hold else "neg"
+    beats_label = "✓ Beats buy-and-hold" if bh.beats_buy_hold else "✗ Does not beat buy-and-hold"
+    strat_cls = "pos" if bh.strategy_net >= 0 else "neg"
+    bh_cls = "pos" if bh.buy_hold_net >= 0 else "neg"
+
+    return f"""<section>
+  <h2>Buy-and-Hold Baseline
+    <span class="sub"> ({html.escape(bh.instrument_symbol)},
+      {html.escape(bh.start_time.strftime('%Y-%m-%d'))} —
+      {html.escape(bh.end_time.strftime('%Y-%m-%d'))})</span>
+  </h2>
+  <p class="sub">Did the strategy outperform simply holding the instrument?
+    Not a like-for-like exposure comparison — see the random-entry benchmark for that.</p>
+  <table class="kpi">
+    <tbody>
+      <tr><td>Strategy Net</td>
+          <td class="{strat_cls}">{html.escape(_fmt_usd(bh.strategy_net))}</td></tr>
+      <tr><td>Buy-and-Hold Net</td>
+          <td class="{bh_cls}">{html.escape(_fmt_usd(bh.buy_hold_net))}</td></tr>
+      <tr><td>Entry bar close</td>
+          <td>{html.escape(f"{bh.start_price:,.2f}")}</td></tr>
+      <tr><td>Exit bar close</td>
+          <td>{html.escape(f"{bh.end_price:,.2f}")}</td></tr>
+    </tbody>
+  </table>
+  <p><strong class="{beats_cls}">{html.escape(beats_label)}</strong></p>
+</section>"""
+
+
 def render_report(
     metrics: Metrics,
     *,
@@ -353,6 +384,7 @@ def render_report(
     bootstrap: BootstrapResult | None = None,
     split: SplitResult | None = None,
     walk: WalkForwardResult | None = None,
+    buy_hold: BuyHoldResult | None = None,
 ) -> str:
     app_name = html.escape(title or APP_NAME)
     generated_at = html.escape(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -410,6 +442,7 @@ def render_report(
     shuffle_section = _shuffle_section(shuffle) if shuffle is not None else ""
     split_section = _split_section(split) if split is not None else ""
     walk_section = _walkforward_section(walk) if walk is not None else ""
+    buyhold_section = _buyhold_section(buy_hold) if buy_hold is not None else ""
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -452,6 +485,7 @@ def render_report(
 {shuffle_section}
 {split_section}
 {walk_section}
+{buyhold_section}
 <footer>Research &amp; backtesting only — not financial advice.</footer>
 </body>
 </html>"""
