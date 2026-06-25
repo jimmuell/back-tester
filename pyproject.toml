@@ -12,6 +12,7 @@ dependencies = [
     "numpy>=1.26",
     "scipy>=1.11",
     "statsmodels>=0.14",
+    "pytz>=2024.1",
 ]
 
 [project.optional-dependencies]
@@ -20,6 +21,7 @@ dev = [
     "ruff>=0.4",
     "mypy>=1.10",
     "pandas-stubs>=2.0",
+    "types-pytz>=2024.1",
 ]
 
 [tool.setuptools.packages.find]
@@ -36,7 +38,7 @@ line-length = 100
 select = ["E", "F", "I"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = false
 disallow_untyped_defs = true
 files = ["engine"]
