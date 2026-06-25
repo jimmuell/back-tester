@@ -69,3 +69,10 @@ Decision: standard `python -m venv .venv` + pip, project metadata/deps/tool conf
 **Why:** The engine is the core value/differentiator, pure-Python (fast, no infra), and a UI built now would be reworked once richer outputs exist; the HTML report already gives visibility.
 **Alternatives:** UI-first to de-risk full-stack integration sooner (deferred; integration risk is low).
 **Consequences:** UI is built once over richer engine output; slice numbering is indicative.
+
+---
+
+### ADR-013 — IS/OOS + walk-forward are temporal-stability checks, not optimization-OOS
+**Decision:** With no in-app optimization (TradingView handles it), the validation module performs chronological hold-out consistency and rolling-window stability analysis. Reports state this explicitly and do not claim optimize-IS/validate-OOS.
+**Why:** Honesty (DESIGN north star). A single trade list with one parameter set cannot support classic walk-forward optimization; it CAN reveal temporal decay.
+**Consequences:** True optimize-OOS is deferred to a possible in-app-optimization phase.

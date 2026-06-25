@@ -9,6 +9,8 @@ from engine.config import APP_NAME
 from engine.metrics.core import Metrics
 from engine.montecarlo.bootstrap import BootstrapResult
 from engine.montecarlo.shuffle import ShuffleResult
+from engine.validation.splits import SplitResult
+from engine.validation.walkforward import WalkForwardResult
 
 _SVG_WIDTH = 700
 _SVG_HEIGHT = 220
@@ -237,6 +239,111 @@ def _shuffle_section(sh: ShuffleResult) -> str:
 </section>"""
 
 
+def _split_section(sp: SplitResult) -> str:
+    """IS vs OOS side-by-side comparison with edge_decayed flag."""
+
+    def _kpi_col(label: str, is_val: str, oos_val: str) -> str:
+        return (
+            f"<tr><td>{html.escape(label)}</td>"
+            f"<td>{html.escape(is_val)}</td>"
+            f"<td>{html.escape(oos_val)}</td></tr>\n"
+        )
+
+    def _pf(v: float) -> str:
+        return "∞" if v == float("inf") else f"{v:.2f}"
+
+    is_m = sp.in_sample
+    oos_m = sp.out_sample
+
+    rows = (
+        _kpi_col("Trades", str(is_m.total_trades), str(oos_m.total_trades))
+        + _kpi_col("Win Rate", _fmt_pct(is_m.win_rate), _fmt_pct(oos_m.win_rate))
+        + _kpi_col("Expectancy", _fmt_usd(is_m.expectancy), _fmt_usd(oos_m.expectancy))
+        + _kpi_col("Net Profit", _fmt_usd(is_m.net_profit), _fmt_usd(oos_m.net_profit))
+        + _kpi_col("Profit Factor", _pf(is_m.profit_factor), _pf(oos_m.profit_factor))
+        + _kpi_col("Max Drawdown", _fmt_usd(is_m.max_drawdown), _fmt_usd(oos_m.max_drawdown))
+    )
+
+    decay_cls = "neg" if sp.edge_decayed else "pos"
+    decay_label = "⚠ EDGE DECAYED (IS positive → OOS ≤ 0)" if sp.edge_decayed else "Edge consistent"
+    ratio_str = (
+        f"{sp.expectancy_ratio:.2f}×"
+        if not (sp.expectancy_ratio != sp.expectancy_ratio)  # NaN guard
+        else "N/A"
+    )
+
+    return f"""<section>
+  <h2>Temporal Stability — In-Sample vs Out-of-Sample
+    <span class="sub"> (OOS = {html.escape(_fmt_pct(sp.oos_fraction))} of trades
+      | split at {html.escape(sp.split_time.strftime('%Y-%m-%d %H:%M'))} ET)</span>
+  </h2>
+  <p class="sub">Chronological hold-out consistency check — not optimize-IS/validate-OOS
+    (see ADR-013).</p>
+  <table class="kpi">
+    <thead><tr>
+      <th style="text-align:left;color:#94a3b8;padding:0.35rem 0.75rem">Metric</th>
+      <th style="text-align:left;color:#94a3b8;padding:0.35rem 0.75rem">In-Sample</th>
+      <th style="text-align:left;color:#94a3b8;padding:0.35rem 0.75rem">Out-of-Sample</th>
+    </tr></thead>
+    <tbody>{rows}</tbody>
+  </table>
+  <p><strong class="{decay_cls}">{html.escape(decay_label)}</strong>
+     &nbsp;|&nbsp; Expectancy ratio (OOS/IS): {html.escape(ratio_str)}</p>
+</section>"""
+
+
+def _walkforward_section(wf: WalkForwardResult) -> str:
+    """Walk-forward window table + stability summary."""
+    header = (
+        "<tr>"
+        "<th>Window</th><th>Trades</th><th>Expectancy</th>"
+        "<th>Net Profit</th><th>Win Rate</th><th>Profit Factor</th><th>Max DD</th>"
+        "</tr>\n"
+    )
+
+    def _pf(v: float) -> str:
+        return "∞" if v == float("inf") else f"{v:.2f}"
+
+    rows = ""
+    for w in wf.windows:
+        exp_cls = "pos" if w.expectancy >= 0 else "neg"
+        period = (
+            f"{w.start_time.strftime('%m/%d/%y')}–{w.end_time.strftime('%m/%d/%y')}"
+        )
+        rows += (
+            f"<tr>"
+            f"<td>W{w.index + 1} <span class='sub'>{html.escape(period)}</span></td>"
+            f"<td>{w.n_trades}</td>"
+            f'<td class="{exp_cls}">{html.escape(_fmt_usd(w.expectancy))}</td>'
+            f"<td>{html.escape(_fmt_usd(w.net_profit))}</td>"
+            f"<td>{html.escape(_fmt_pct(w.win_rate))}</td>"
+            f"<td>{html.escape(_pf(w.profit_factor))}</td>"
+            f'<td class="neg">{html.escape(_fmt_usd(w.max_drawdown))}</td>'
+            f"</tr>\n"
+        )
+
+    pct_pos_cls = "pos" if wf.pct_windows_positive >= 0.6 else "neg"
+
+    return f"""<section>
+  <h2>Walk-Forward Stability
+    <span class="sub"> ({html.escape(str(wf.n_windows))} windows,
+      {html.escape(wf.scheme)} scheme)</span>
+  </h2>
+  <p class="sub">Contiguous equal-count time segments — temporal consistency check,
+    not walk-forward optimization (ADR-013).</p>
+  <table class="kpi" style="min-width:600px">
+    <thead style="color:#94a3b8;font-size:0.85rem">{header}</thead>
+    <tbody>{rows}</tbody>
+  </table>
+  <p>
+    <strong class="{pct_pos_cls}">{html.escape(_fmt_pct(wf.pct_windows_positive))}</strong>
+    of windows positive &nbsp;|&nbsp;
+    Expectancy mean {html.escape(_fmt_usd(wf.expectancy_mean))},
+    std {html.escape(_fmt_usd(wf.expectancy_std))}
+  </p>
+</section>"""
+
+
 def render_report(
     metrics: Metrics,
     *,
@@ -244,6 +351,8 @@ def render_report(
     meta: dict[str, str] | None = None,
     shuffle: ShuffleResult | None = None,
     bootstrap: BootstrapResult | None = None,
+    split: SplitResult | None = None,
+    walk: WalkForwardResult | None = None,
 ) -> str:
     app_name = html.escape(title or APP_NAME)
     generated_at = html.escape(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -299,6 +408,8 @@ def render_report(
 
     bootstrap_section = _bootstrap_section(bootstrap) if bootstrap is not None else ""
     shuffle_section = _shuffle_section(shuffle) if shuffle is not None else ""
+    split_section = _split_section(split) if split is not None else ""
+    walk_section = _walkforward_section(walk) if walk is not None else ""
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -339,6 +450,8 @@ def render_report(
 </section>
 {bootstrap_section}
 {shuffle_section}
+{split_section}
+{walk_section}
 <footer>Research &amp; backtesting only — not financial advice.</footer>
 </body>
 </html>"""
