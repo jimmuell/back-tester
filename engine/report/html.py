@@ -10,6 +10,7 @@ from engine.metrics.core import Metrics
 from engine.montecarlo.bootstrap import BootstrapResult
 from engine.montecarlo.shuffle import ShuffleResult
 from engine.validation.benchmarks import BuyHoldResult, RandomEntryResult
+from engine.validation.regimes import RegimeBreakdown
 from engine.validation.splits import SplitResult
 from engine.validation.walkforward import WalkForwardResult
 
@@ -345,6 +346,60 @@ def _walkforward_section(wf: WalkForwardResult) -> str:
 </section>"""
 
 
+_REGIME_ORDER: dict[str, int] = {
+    # trend
+    "bull": 0, "range": 1, "bear": 2,
+    # volatility
+    "high_vol": 0, "low_vol": 1,
+    # fallback
+    "undefined": 99,
+}
+
+
+def _regime_section(rb: RegimeBreakdown) -> str:
+    def _pf(v: float) -> str:
+        return "∞" if v == float("inf") else f"{v:.2f}"
+
+    header = (
+        "<tr>"
+        "<th>Regime</th><th>Trades</th><th>Expectancy</th>"
+        "<th>Win Rate</th><th>Net Profit</th><th>Profit Factor</th>"
+        "</tr>\n"
+    )
+
+    sorted_regimes = sorted(
+        rb.per_regime.items(),
+        key=lambda kv: _REGIME_ORDER.get(kv[0], 50),
+    )
+
+    rows = ""
+    for label, m in sorted_regimes:
+        exp_cls = "pos" if m.expectancy >= 0 else "neg"
+        rows += (
+            f"<tr>"
+            f"<td>{html.escape(label)}</td>"
+            f"<td>{m.total_trades}</td>"
+            f'<td class="{exp_cls}">{html.escape(_fmt_usd(m.expectancy))}</td>'
+            f"<td>{html.escape(_fmt_pct(m.win_rate))}</td>"
+            f"<td>{html.escape(_fmt_usd(m.net_profit))}</td>"
+            f"<td>{html.escape(_pf(m.profit_factor))}</td>"
+            f"</tr>\n"
+        )
+
+    params_str = ", ".join(f"{k}={v}" for k, v in rb.params.items()) if rb.params else ""
+    sub = f" ({html.escape(params_str)})" if params_str else ""
+
+    return f"""<section>
+  <h2>Regime Breakdown — {html.escape(rb.scheme)}{sub}</h2>
+  <p class="sub">Regime label assigned to each trade from the most recent bar at/before
+    entry time (non-look-ahead, trailing windows only).</p>
+  <table class="kpi" style="min-width:560px">
+    <thead style="color:#94a3b8;font-size:0.85rem">{header}</thead>
+    <tbody>{rows}</tbody>
+  </table>
+</section>"""
+
+
 def _random_entry_section(re: RandomEntryResult) -> str:
     beats_cls = "pos" if re.beats_random else "neg"
     beats_label = (
@@ -430,6 +485,7 @@ def render_report(
     walk: WalkForwardResult | None = None,
     buy_hold: BuyHoldResult | None = None,
     random_entry_result: RandomEntryResult | None = None,
+    regime: RegimeBreakdown | None = None,
 ) -> str:
     app_name = html.escape(title or APP_NAME)
     generated_at = html.escape(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -491,6 +547,7 @@ def render_report(
     random_entry_section = (
         _random_entry_section(random_entry_result) if random_entry_result is not None else ""
     )
+    regime_section = _regime_section(regime) if regime is not None else ""
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -535,6 +592,7 @@ def render_report(
 {walk_section}
 {buyhold_section}
 {random_entry_section}
+{regime_section}
 <footer>Research &amp; backtesting only — not financial advice.</footer>
 </body>
 </html>"""
