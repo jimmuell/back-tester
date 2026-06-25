@@ -17,6 +17,7 @@ from engine.validation.benchmarks import BuyHoldResult, RandomEntryResult
 from engine.validation.regimes import RegimeBreakdown
 from engine.validation.splits import SplitResult
 from engine.validation.walkforward import WalkForwardResult
+from engine.verdict import Verdict, summarize
 
 
 def _f(v: float) -> float | None:
@@ -157,6 +158,24 @@ def _regime(rb: RegimeBreakdown) -> dict[str, Any]:
     }
 
 
+def _verdict(v: Verdict) -> dict[str, Any]:
+    return {
+        "overall": v.overall,
+        "summary": v.summary,
+        "findings": [
+            {
+                "key": f.key,
+                "title": f.title,
+                "status": f.status,
+                "headline": f.headline,
+                "detail": f.detail,
+                "stat": _f(f.stat) if f.stat is not None else None,
+            }
+            for f in v.findings
+        ],
+    }
+
+
 def serialize_result(result: ValidationResult) -> dict[str, Any]:
     """Convert a ValidationResult to a JSON-serializable dict (summary fields only)."""
     return {
@@ -169,4 +188,5 @@ def serialize_result(result: ValidationResult) -> dict[str, Any]:
         "random_entry": _random_entry(result.random_entry) if result.random_entry else None,
         "regimes": {k: _regime(v) for k, v in result.regimes.items()},
         "skipped": result.skipped,
+        "verdict": _verdict(summarize(result)),
     }
