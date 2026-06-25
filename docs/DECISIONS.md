@@ -46,3 +46,18 @@ Decision: Build a configurable funded-account simulator over timing-aware Monte 
 
 **ADR-009 — Python tooling: .venv + pip + pyproject (PEP 621, setuptools)**
 Decision: standard `python -m venv .venv` + pip, project metadata/deps/tool config in `pyproject.toml`. Why: universal, zero-friction, no extra tooling to install. Alternatives: uv (faster — may adopt later as a drop-in), Poetry (heavier). Consequences: dev installs via `pip install -e ".[dev]"`.
+
+---
+
+### ADR-010 — Timezones: stdlib zoneinfo + tzdata (drop pytz)
+**Decision:** Use stdlib `zoneinfo` for all tz handling; add `tzdata` for Windows; canonical zone "America/New_York". Remove pytz/types-pytz.
+**Why:** pytz's non-standard `localize()` API is a known datetime footgun; zoneinfo (PEP 615) is the modern stdlib approach and drops a dependency.
+**Consequences:** Shared `engine/timeutils.py` (ET constant + `to_et` helper). zoneinfo still accepts "US/Eastern" as an alias, so persisted strings stay valid.
+
+---
+
+### ADR-011 — Python floor standardized at 3.12
+**Decision:** `requires-python = ">=3.12"`, matching `mypy python_version` and `ruff target-version = "py312"`.
+**Why:** TASK 002 surfaced a mismatch (runtime >=3.11 vs mypy 3.12); 3.12-only code could pass type checks yet fail at runtime. No product reason to support 3.11; current numpy stubs assume 3.12.
+**Alternatives:** Keep 3.11 and upgrade mypy to parse PEP 695 stubs (rejected: more friction for no benefit).
+**Consequences:** Consistency across runtime, type-checker, and linter.

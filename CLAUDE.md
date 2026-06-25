@@ -27,7 +27,7 @@ Next.js (UI) ↔ FastAPI (API) ↔ `engine/` (pure-Python validation lib) ↔ Po
 
 ## Stack
 
-Python 3.11+, pandas, numpy, scipy, statsmodels, pytest, ruff, mypy. Node 20+, Next.js (App Router), React, TypeScript, Tailwind, shadcn/ui, TanStack Query, lightweight-charts, uPlot, Recharts.
+Python 3.12+, pandas, numpy, scipy, statsmodels, pytest, ruff, mypy. Node 20+, Next.js (App Router), React, TypeScript, Tailwind, shadcn/ui, TanStack Query, lightweight-charts, uPlot, Recharts.
 
 ## Build order (current)
 
