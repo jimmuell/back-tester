@@ -75,14 +75,20 @@ def generate_trades(
     win_rate: float | None = None,
     commission_per_contract: float = 1.24,
     qty: int = 1,
+    start_id: int = 1,
 ) -> list[Trade]:
-    """Generate a reproducible synthetic trade list."""
+    """Generate a reproducible synthetic trade list.
+
+    start_id lets callers produce non-overlapping ID ranges when concatenating
+    multiple batches for CSV round-trips (e.g. start_id=n_first+1 for the
+    second batch avoids duplicate Trade # errors in load_trades).
+    """
     rng = np.random.default_rng(seed)
     wr, avg_win_pts, avg_loss_pts = _profile_params(profile, win_rate)
 
     trades: list[Trade] = []
     current_date = start_date
-    trade_id = 1
+    trade_id = start_id
 
     while len(trades) < n_trades:
         if not _is_weekday(current_date):

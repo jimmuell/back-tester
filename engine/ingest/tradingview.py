@@ -135,8 +135,16 @@ def load_trades(path: Path, *, tz: str = "America/New_York") -> list[Trade]:
         record = {k: row[v] for k, v in col.items()}
 
         if row_type == "entry" or signal in _ENTRY_SIGNALS:
+            if trade_num in entries:
+                raise TradeListFormatError(
+                    f"Line {lineno}: duplicate ENTRY for Trade #{trade_num}"
+                )
             entries[trade_num] = record
         elif row_type == "exit" or signal in _EXIT_SIGNALS:
+            if trade_num in exits:
+                raise TradeListFormatError(
+                    f"Line {lineno}: duplicate EXIT for Trade #{trade_num}"
+                )
             exits[trade_num] = record
         else:
             raise TradeListFormatError(
