@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import tempfile
-from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 
@@ -27,11 +26,6 @@ def _load_via_csv(trades: list[Trade]) -> list[Trade]:
     loaded = load_trades(p)
     p.unlink(missing_ok=True)
     return loaded
-
-
-def _renumber(trades: list[Trade]) -> list[Trade]:
-    """Return a new list with sequential trade_ids starting from 1."""
-    return [replace(t, trade_id=i + 1) for i, t in enumerate(trades)]
 
 
 def _print_split(label: str, sp: object) -> None:
@@ -79,15 +73,14 @@ def main() -> None:
     early = generate_trades(
         n_trades=300, profile="edge", seed=1,
         start_date=datetime(2024, 1, 2).date(),
+        start_id=1,
     )
     late = generate_trades(
         n_trades=100, profile="negative", seed=2,
         start_date=datetime(2024, 8, 1).date(),
+        start_id=301,                          # non-overlapping IDs
     )
-    # Renumber IDs so there are no collisions, then sort chronologically
-    decay_trades = sorted(
-        _renumber(early + late), key=lambda t: t.exit_time
-    )
+    decay_trades = sorted(early + late, key=lambda t: t.exit_time)
     decay_sp = in_out_split(decay_trades)
     decay_wf = walk_forward(decay_trades, n_windows=6)
     _print_split("IS/OOS split (30% OOS)", decay_sp)
