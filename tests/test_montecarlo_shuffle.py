@@ -4,10 +4,10 @@ from datetime import datetime
 
 import pytest
 
-from engine.ingest.models import Trade
-from engine.metrics.core import compute_metrics
-from engine.montecarlo.shuffle import run_shuffle
-from engine.timeutils import to_et
+from backtester.ingest.models import Trade
+from backtester.metrics.core import compute_metrics
+from backtester.montecarlo.shuffle import run_shuffle
+from backtester.timeutils import to_et
 
 _N_ITER = 500   # fast for tests
 
@@ -30,7 +30,7 @@ def _make_trade(trade_id: int, pnl: float) -> Trade:
 
 
 def _edge_trades(n: int = 100) -> list[Trade]:
-    from engine.ingest.synthetic import generate_trades
+    from backtester.ingest.synthetic import generate_trades
     return generate_trades(n_trades=n, profile="edge", seed=7)
 
 

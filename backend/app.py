@@ -1,4 +1,4 @@
-"""FastAPI application — thin HTTP adapter over engine.validate().
+"""FastAPI application — thin HTTP adapter over backtester.validate().
 
 Synchronous validate() calls are made directly. When run times grow,
 move them to asyncio.to_thread() or a job-queue pattern (ADR-002).
@@ -14,12 +14,12 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.serialization import serialize_result
-from engine import ValidationConfig, validate
-from engine.config import APP_NAME
-from engine.ingest.firstrate import BarDataError, load_bars
-from engine.ingest.tradingview import TradeListFormatError, load_trades
+from backtester import ValidationConfig, validate
+from backtester.config import APP_NAME
+from backtester.ingest.firstrate import BarDataError, load_bars
+from backtester.ingest.tradingview import TradeListFormatError, load_trades
 
-app = FastAPI(title=APP_NAME, version="0.0.0")
+app = FastAPI(title=APP_NAME, version="0.2.0")
 
 # Allow all origins for development; TASK 011 will restrict to the Next.js origin.
 app.add_middleware(

@@ -9,10 +9,10 @@ from zoneinfo import ZoneInfo
 import numpy as np
 import pandas as pd
 
-from engine.ingest.firstrate import Adjustment, BarSet, Timeframe
-from engine.ingest.models import Trade
-from engine.instruments import MES, Instrument
-from engine.timeutils import ET
+from backtester.ingest.firstrate import Adjustment, BarSet, Timeframe
+from backtester.ingest.models import Trade
+from backtester.instruments import MES, Instrument
+from backtester.timeutils import ET
 
 _TF_MINUTES: dict[str, int] = {
     "1min": 1,

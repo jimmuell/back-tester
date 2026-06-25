@@ -17,8 +17,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from engine.ingest.models import Trade
-from engine.metrics.core import compute_metrics
+from backtester.ingest.models import Trade
+from backtester.metrics.core import compute_metrics
 
 _PCTILE_KEYS = (5, 25, 50, 75, 95)
 

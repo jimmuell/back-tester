@@ -4,16 +4,16 @@ import html
 from datetime import datetime
 from pathlib import Path
 
-import engine
-from engine.config import APP_NAME
-from engine.metrics.core import Metrics
-from engine.montecarlo.bootstrap import BootstrapResult
-from engine.montecarlo.shuffle import ShuffleResult
-from engine.orchestrator import ValidationResult
-from engine.validation.benchmarks import BuyHoldResult, RandomEntryResult
-from engine.validation.regimes import RegimeBreakdown
-from engine.validation.splits import SplitResult
-from engine.validation.walkforward import WalkForwardResult
+import backtester
+from backtester.config import APP_NAME
+from backtester.metrics.core import Metrics
+from backtester.montecarlo.bootstrap import BootstrapResult
+from backtester.montecarlo.shuffle import ShuffleResult
+from backtester.orchestrator import ValidationResult
+from backtester.validation.benchmarks import BuyHoldResult, RandomEntryResult
+from backtester.validation.regimes import RegimeBreakdown
+from backtester.validation.splits import SplitResult
+from backtester.validation.walkforward import WalkForwardResult
 
 _SVG_WIDTH = 700
 _SVG_HEIGHT = 220
@@ -504,7 +504,7 @@ def render_report(
 ) -> str:
     app_name = html.escape(title or APP_NAME)
     generated_at = html.escape(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    version = html.escape(engine.__version__)
+    version = html.escape(backtester.__version__)
 
     meta_rows = ""
     if meta:

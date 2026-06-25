@@ -5,11 +5,11 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from engine.config import APP_NAME
-from engine.ingest.synthetic import generate_trades, write_tradingview_csv
-from engine.ingest.tradingview import load_trades
-from engine.metrics.core import compute_metrics
-from engine.report.html import write_report
+from backtester.config import APP_NAME
+from backtester.ingest.synthetic import generate_trades, write_tradingview_csv
+from backtester.ingest.tradingview import load_trades
+from backtester.metrics.core import compute_metrics
+from backtester.report.html import write_report
 
 REPORTS_DIR = Path(__file__).parent.parent / "reports"
 REPORT_PATH = REPORTS_DIR / "sample_report.html"

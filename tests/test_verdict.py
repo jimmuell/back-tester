@@ -7,10 +7,10 @@ from __future__ import annotations
 
 import pytest
 
-from engine import ValidationConfig, validate
-from engine.ingest.models import Trade
-from engine.ingest.synthetic import generate_trades
-from engine.verdict import Finding, Verdict, VerdictStatus, summarize
+from backtester import ValidationConfig, validate
+from backtester.ingest.models import Trade
+from backtester.ingest.synthetic import generate_trades
+from backtester.verdict import Finding, Verdict, VerdictStatus, summarize
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -226,8 +226,8 @@ def test_no_bars_vs_buy_hold_inconclusive_or_info() -> None:
 
 def test_inconclusive_signal_detail_has_extreme_rank_note() -> None:
     """When signal_vs_exposure is inconclusive (mid-range rank), detail must note extreme ranks."""
-    from engine.orchestrator import ValidationResult
-    from engine.validation.benchmarks import RandomEntryResult
+    from backtester.orchestrator import ValidationResult
+    from backtester.validation.benchmarks import RandomEntryResult
 
     result = _edge_result()
     # Patch random_entry with a mid-range rank to force inconclusive

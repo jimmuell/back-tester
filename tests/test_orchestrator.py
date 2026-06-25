@@ -5,11 +5,11 @@ from unittest.mock import patch
 
 import pytest
 
-import engine.orchestrator as _orch
-from engine import ValidationConfig, validate
-from engine.ingest.models import Trade
-from engine.ingest.synthetic import generate_bars, generate_trades
-from engine.instruments import ES, MES
+import backtester.orchestrator as _orch
+from backtester import ValidationConfig, validate
+from backtester.ingest.models import Trade
+from backtester.ingest.synthetic import generate_bars, generate_trades
+from backtester.instruments import ES, MES
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -201,13 +201,13 @@ def test_validate_deterministic() -> None:
         assert r1.regimes[scheme].trade_counts == r2.regimes[scheme].trade_counts
 
 
-# ── engine.__init__ re-exports ────────────────────────────────────────────────
+# ── backtester.__init__ re-exports ────────────────────────────────────────────
 
-def test_engine_init_exports() -> None:
-    import engine
-    assert hasattr(engine, "validate")
-    assert hasattr(engine, "ValidationConfig")
-    assert hasattr(engine, "ValidationResult")
+def test_backtester_init_exports() -> None:
+    import backtester
+    assert hasattr(backtester, "validate")
+    assert hasattr(backtester, "ValidationConfig")
+    assert hasattr(backtester, "ValidationResult")
 
 
 # ── ValidationResult structure ────────────────────────────────────────────────

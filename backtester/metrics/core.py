@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from engine.ingest.models import Trade
+from backtester.ingest.models import Trade
 
 
 @dataclass(frozen=True)

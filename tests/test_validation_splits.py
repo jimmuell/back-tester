@@ -4,10 +4,10 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from engine.ingest.models import Trade
-from engine.ingest.synthetic import generate_trades
-from engine.timeutils import ET
-from engine.validation.splits import in_out_split
+from backtester.ingest.models import Trade
+from backtester.ingest.synthetic import generate_trades
+from backtester.timeutils import ET
+from backtester.validation.splits import in_out_split
 
 
 def _trade(trade_id: int, pnl: float, exit_offset_days: int) -> Trade:

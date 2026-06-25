@@ -6,10 +6,10 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import pytest
 
-from engine.ingest.firstrate import BarSet
-from engine.ingest.models import Trade
-from engine.instruments import MES
-from engine.validation.benchmarks import BenchmarkError, buy_and_hold
+from backtester.ingest.firstrate import BarSet
+from backtester.ingest.models import Trade
+from backtester.instruments import MES
+from backtester.validation.benchmarks import BenchmarkError, buy_and_hold
 
 UTC = ZoneInfo("UTC")
 

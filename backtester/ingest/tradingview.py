@@ -6,8 +6,8 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from engine.ingest.models import Trade
-from engine.ingest.synthetic import TRADINGVIEW_COLUMNS
+from backtester.ingest.models import Trade
+from backtester.ingest.synthetic import TRADINGVIEW_COLUMNS
 
 # Canonical column names — also the single source of truth shared with synthetic.py.
 __all__ = ["TRADINGVIEW_COLUMNS", "TradeListFormatError", "load_trades"]

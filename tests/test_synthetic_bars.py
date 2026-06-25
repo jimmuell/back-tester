@@ -4,7 +4,7 @@ from datetime import date
 
 import pandas as pd
 
-from engine.ingest.synthetic import generate_bars
+from backtester.ingest.synthetic import generate_bars
 
 
 def test_default_row_count() -> None:

@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from engine.ingest.synthetic import generate_trades, write_tradingview_csv
-from engine.ingest.tradingview import TradeListFormatError, load_trades
+from backtester.ingest.synthetic import generate_trades, write_tradingview_csv
+from backtester.ingest.tradingview import TradeListFormatError, load_trades
 
 FIXTURE = Path(__file__).parent / "fixtures" / "sample_trades_edge.csv"
 

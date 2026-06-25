@@ -4,10 +4,10 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from engine.ingest.models import Trade
-from engine.ingest.synthetic import generate_trades
-from engine.timeutils import ET
-from engine.validation.walkforward import walk_forward
+from backtester.ingest.models import Trade
+from backtester.ingest.synthetic import generate_trades
+from backtester.timeutils import ET
+from backtester.validation.walkforward import walk_forward
 
 
 def _trade(trade_id: int, pnl: float, exit_offset_days: int) -> Trade:

@@ -7,12 +7,12 @@ from pathlib import Path
 
 import numpy as np
 
-from engine.ingest.models import Trade
-from engine.ingest.synthetic import generate_bars
-from engine.instruments import MES
-from engine.metrics.core import compute_metrics
-from engine.report.html import write_report
-from engine.validation.regimes import classify_regimes, regime_breakdown
+from backtester.ingest.models import Trade
+from backtester.ingest.synthetic import generate_bars
+from backtester.instruments import MES
+from backtester.metrics.core import compute_metrics
+from backtester.report.html import write_report
+from backtester.validation.regimes import classify_regimes, regime_breakdown
 
 APP_NAME = os.getenv("APP_NAME", "BackTester")
 
@@ -49,7 +49,7 @@ rb_vol = regime_breakdown(trades, bars, scheme="volatility", vol_length=20.0)
 
 # ── Print per-regime expectancy ───────────────────────────────────────────────
 def _print_breakdown(title: str, rb: object) -> None:
-    from engine.validation.regimes import RegimeBreakdown
+    from backtester.validation.regimes import RegimeBreakdown
     rb_typed: RegimeBreakdown = rb  # type: ignore[assignment]
     print(f"\n{APP_NAME} — {title}")
     print("─" * 52)

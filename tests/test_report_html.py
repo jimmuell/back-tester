@@ -4,11 +4,11 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from engine.config import APP_NAME
-from engine.ingest.models import Trade
-from engine.metrics.core import compute_metrics
-from engine.report.html import render_report, write_report
-from engine.timeutils import to_et
+from backtester.config import APP_NAME
+from backtester.ingest.models import Trade
+from backtester.metrics.core import compute_metrics
+from backtester.report.html import render_report, write_report
+from backtester.timeutils import to_et
 
 
 def _dt(s: str) -> datetime:

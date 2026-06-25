@@ -52,7 +52,7 @@ Decision: standard `python -m venv .venv` + pip, project metadata/deps/tool conf
 ### ADR-010 — Timezones: stdlib zoneinfo + tzdata (drop pytz)
 **Decision:** Use stdlib `zoneinfo` for all tz handling; add `tzdata` for Windows; canonical zone "America/New_York". Remove pytz/types-pytz.
 **Why:** pytz's non-standard `localize()` API is a known datetime footgun; zoneinfo (PEP 615) is the modern stdlib approach and drops a dependency.
-**Consequences:** Shared `engine/timeutils.py` (ET constant + `to_et` helper). zoneinfo still accepts "US/Eastern" as an alias, so persisted strings stay valid.
+**Consequences:** Shared `backtester/timeutils.py` (ET constant + `to_et` helper). zoneinfo still accepts "US/Eastern" as an alias, so persisted strings stay valid.
 
 ---
 
@@ -83,3 +83,11 @@ Decision: standard `python -m venv .venv` + pip, project metadata/deps/tool conf
 **Decision:** The Lead reviews each PR by reading the diff and, on pass, posts "APPROVED — Claude Code may merge PR #N". Claude Code then runs `gh pr merge N --squash --delete-branch`. The Operator relays approval but no longer runs the merge command.
 **Why:** Preserves the author≠approver review checkpoint while removing manual friction from the Operator. CLAUDE.md encodes the rule so it binds every session without re-stating it.
 **Consequences:** Nothing reaches main without explicit Lead approval in the thread.
+
+---
+
+### ADR-015 — Rename importable package `engine` → `backtester`
+**Decision:** Rename the top-level Python package directory `engine/` to `backtester/` so the validation library is importable as `import backtester`. Update every internal `from engine.` import, `pyproject.toml` package discovery, mypy target, and version (bumped to 0.2.0). The HTTP API and response shapes are unchanged; frontend is unaffected (talks HTTP only).
+**Why:** A second repo (`mes-orb-strategy`) will embed this library in-process and also has a top-level package named `engine`. A collision would break both. Renaming to `backtester` — the project's already-established identity — resolves the conflict and makes `pip install git+https://github.com/jimmuell/back-tester.git` expose a predictable import name.
+**Alternatives:** (B) Namespace package `backtester.engine` — extra indirection with no benefit. (C) Keep `engine` and rely on path ordering — fragile in monorepos.
+**Consequences:** All internal imports use `backtester.*`. The package is now installable from git with a stable import name. Pure mechanical rename; no behavior changes.

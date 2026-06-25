@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import pandas as pd
 
-from engine.ingest.firstrate import BarSet
-from engine.ingest.models import Trade
-from engine.ingest.synthetic import generate_bars
-from engine.instruments import MES
-from engine.validation.regimes import classify_regimes, regime_breakdown
+from backtester.ingest.firstrate import BarSet
+from backtester.ingest.models import Trade
+from backtester.ingest.synthetic import generate_bars
+from backtester.instruments import MES
+from backtester.validation.regimes import classify_regimes, regime_breakdown
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 

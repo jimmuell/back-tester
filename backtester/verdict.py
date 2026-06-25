@@ -10,7 +10,7 @@ import math
 from dataclasses import dataclass
 from typing import Literal
 
-from engine.orchestrator import ValidationResult
+from backtester.orchestrator import ValidationResult
 
 VerdictStatus = Literal["pass", "caution", "fail", "inconclusive", "info"]
 

@@ -8,12 +8,12 @@ from pathlib import Path
 
 import numpy as np
 
-from engine.ingest.models import Trade
-from engine.ingest.synthetic import generate_bars, generate_trades
-from engine.instruments import MES
-from engine.metrics.core import compute_metrics
-from engine.report.html import write_report
-from engine.validation.benchmarks import buy_and_hold, random_entry
+from backtester.ingest.models import Trade
+from backtester.ingest.synthetic import generate_bars, generate_trades
+from backtester.instruments import MES
+from backtester.metrics.core import compute_metrics
+from backtester.report.html import write_report
+from backtester.validation.benchmarks import buy_and_hold, random_entry
 
 APP_NAME = os.getenv("APP_NAME", "BackTester")
 

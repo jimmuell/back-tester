@@ -6,10 +6,10 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from engine.ingest.firstrate import BarSet
-from engine.ingest.models import Trade
-from engine.instruments import MES, Instrument
-from engine.metrics.core import compute_metrics
+from backtester.ingest.firstrate import BarSet
+from backtester.ingest.models import Trade
+from backtester.instruments import MES, Instrument
+from backtester.metrics.core import compute_metrics
 
 
 class BenchmarkError(ValueError):

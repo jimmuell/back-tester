@@ -11,7 +11,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from backend.app import app
-from engine.ingest.synthetic import generate_bars, generate_trades, write_tradingview_csv
+from backtester.ingest.synthetic import generate_bars, generate_trades, write_tradingview_csv
 
 client = TestClient(app)
 
