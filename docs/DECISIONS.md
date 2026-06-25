@@ -76,3 +76,10 @@ Decision: standard `python -m venv .venv` + pip, project metadata/deps/tool conf
 **Decision:** With no in-app optimization (TradingView handles it), the validation module performs chronological hold-out consistency and rolling-window stability analysis. Reports state this explicitly and do not claim optimize-IS/validate-OOS.
 **Why:** Honesty (DESIGN north star). A single trade list with one parameter set cannot support classic walk-forward optimization; it CAN reveal temporal decay.
 **Consequences:** True optimize-OOS is deferred to a possible in-app-optimization phase.
+
+---
+
+### ADR-014 — Merge workflow: Lead approves, Claude Code merges
+**Decision:** The Lead reviews each PR by reading the diff and, on pass, posts "APPROVED — Claude Code may merge PR #N". Claude Code then runs `gh pr merge N --squash --delete-branch`. The Operator relays approval but no longer runs the merge command.
+**Why:** Preserves the author≠approver review checkpoint while removing manual friction from the Operator. CLAUDE.md encodes the rule so it binds every session without re-stating it.
+**Consequences:** Nothing reaches main without explicit Lead approval in the thread.

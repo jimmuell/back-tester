@@ -24,6 +24,7 @@ Next.js (UI) ↔ FastAPI (API) ↔ `engine/` (pure-Python validation lib) ↔ Po
 - Transcript extraction must list assumptions and flag unsupported primitives; user reviews the spec before any run. Reports validate our interpretation, not gospel.
 - Research/backtesting only — no live trading, order placement, or brokerage actions.
 - Append non-trivial decisions to `docs/DECISIONS.md`.
+- **Merging:** Claude Code may merge a PR ONLY after the Lead has posted an explicit "APPROVED — Claude Code may merge PR #N". Merge via `gh pr merge N --squash --delete-branch`. Never merge to main without that explicit approval. The PR author does not self-approve; the Lead's review is the gate.
 
 ## Stack
 
