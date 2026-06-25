@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+from datetime import date
+from unittest.mock import patch
+
 import pytest
 
+import engine.orchestrator as _orch
 from engine import ValidationConfig, validate
 from engine.ingest.models import Trade
 from engine.ingest.synthetic import generate_bars, generate_trades
@@ -213,3 +217,30 @@ def test_validation_result_is_frozen() -> None:
     result = validate(trades, config=ValidationConfig(mc_iterations=200))
     with pytest.raises(Exception):
         result.skipped = []  # type: ignore[misc]
+
+
+# ── BenchmarkError → skipped; real errors propagate ──────────────────────────
+
+def test_buy_hold_skipped_on_benchmark_error() -> None:
+    """Bars from 2024, trades from 2026 → BenchmarkError → buy_hold in skipped."""
+    bars = generate_bars(n_bars=100, seed=42, start=date(2024, 1, 2))
+    trades = generate_trades(n_trades=10, seed=42, start_date=date(2026, 1, 2))
+    cfg = ValidationConfig(mc_iterations=200, random_entry_iterations=200)
+    result = validate(trades, bars, config=cfg)
+    assert result.metrics is not None
+    assert result.shuffle is not None
+    assert result.bootstrap is not None
+    assert any("buy_hold" in s for s in result.skipped)
+
+
+def test_regime_error_propagates(monkeypatch: pytest.MonkeyPatch) -> None:
+    """RuntimeError from regime_breakdown must not be swallowed into skipped."""
+    trades, bars = _bar_trades(n=30)
+    cfg = ValidationConfig(mc_iterations=200, random_entry_iterations=200)
+
+    def _boom(*args: object, **kwargs: object) -> object:
+        raise RuntimeError("injected regime error")
+
+    with patch.object(_orch, "regime_breakdown", _boom):
+        with pytest.raises(RuntimeError, match="injected regime error"):
+            validate(trades, bars, config=cfg)

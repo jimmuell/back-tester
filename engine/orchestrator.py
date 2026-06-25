@@ -10,6 +10,7 @@ from engine.metrics.core import Metrics, compute_metrics
 from engine.montecarlo.bootstrap import BootstrapResult, run_bootstrap
 from engine.montecarlo.shuffle import ShuffleResult, run_shuffle
 from engine.validation.benchmarks import (
+    BenchmarkError,
     BuyHoldResult,
     RandomEntryResult,
     buy_and_hold,
@@ -61,9 +62,12 @@ def validate(
     """Run all validation passes and return a unified result.
 
     Always runs: compute_metrics, run_shuffle, run_bootstrap.
-    Conditionally runs: in_out_split, walk_forward (guard on trade count).
+    Conditionally runs: in_out_split, walk_forward (precondition on trade count).
     Only with bars: buy_and_hold, random_entry, regime_breakdown per scheme.
-    Any skipped pass is recorded in result.skipped with a reason.
+
+    Skips are recorded ONLY for known data preconditions (too few trades) or
+    the documented BenchmarkError data-coverage cases. All other exceptions
+    propagate — a real bug must never be silently downgraded to a skipped analysis.
 
     Raises ValueError for an empty trade list.
     """
@@ -87,16 +91,22 @@ def validate(
     )
 
     split: SplitResult | None = None
-    try:
+    n = len(trades)
+    split_idx = max(1, round(n * (1 - config.oos_fraction)))
+    if n < 2 or split_idx >= n:
+        skipped.append(
+            f"split: not enough trades to form IS/OOS segments (n={n})"
+        )
+    else:
         split = in_out_split(trades, oos_fraction=config.oos_fraction)
-    except ValueError as exc:
-        skipped.append(f"split: {exc}")
 
     wf: WalkForwardResult | None = None
-    try:
+    if config.n_windows < 2 or n < config.n_windows:
+        skipped.append(
+            f"walk_forward: need >= n_windows={config.n_windows} trades, have {n}"
+        )
+    else:
         wf = walk_forward(trades, n_windows=config.n_windows)
-    except ValueError as exc:
-        skipped.append(f"walk_forward: {exc}")
 
     bh: BuyHoldResult | None = None
     re: RandomEntryResult | None = None
@@ -105,7 +115,7 @@ def validate(
     if bars is not None:
         try:
             bh = buy_and_hold(trades, bars, instrument=config.instrument, qty=config.qty)
-        except Exception as exc:
+        except BenchmarkError as exc:
             skipped.append(f"buy_hold: {exc}")
 
         try:
@@ -118,22 +128,18 @@ def validate(
                 qty=config.qty,
                 threshold=config.random_entry_threshold,
             )
-        except Exception as exc:
+        except BenchmarkError as exc:
             skipped.append(f"random_entry: {exc}")
 
         for scheme in config.regime_schemes:
-            try:
-                rb = regime_breakdown(
-                    trades,
-                    bars,
-                    scheme=scheme,  # type: ignore[arg-type]
-                    ma_length=float(config.ma_length),
-                    vol_length=float(config.vol_length),
-                    high_vol_quantile=config.high_vol_quantile,
-                )
-                regimes[scheme] = rb
-            except Exception as exc:
-                skipped.append(f"regime[{scheme}]: {exc}")
+            regimes[scheme] = regime_breakdown(
+                trades,
+                bars,
+                scheme=scheme,  # type: ignore[arg-type]
+                ma_length=float(config.ma_length),
+                vol_length=float(config.vol_length),
+                high_vol_quantile=config.high_vol_quantile,
+            )
     else:
         skipped.append("buy_hold: bars not provided")
         skipped.append("random_entry: bars not provided")
