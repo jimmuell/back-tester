@@ -61,3 +61,11 @@ Decision: standard `python -m venv .venv` + pip, project metadata/deps/tool conf
 **Why:** TASK 002 surfaced a mismatch (runtime >=3.11 vs mypy 3.12); 3.12-only code could pass type checks yet fail at runtime. No product reason to support 3.11; current numpy stubs assume 3.12.
 **Alternatives:** Keep 3.11 and upgrade mypy to parse PEP 695 stubs (rejected: more friction for no benefit).
 **Consequences:** Consistency across runtime, type-checker, and linter.
+
+---
+
+### ADR-012 — Build the statistical engine before the UI
+**Decision:** Do Monte Carlo + core statistical validation before the FastAPI/Next.js UI.
+**Why:** The engine is the core value/differentiator, pure-Python (fast, no infra), and a UI built now would be reworked once richer outputs exist; the HTML report already gives visibility.
+**Alternatives:** UI-first to de-risk full-stack integration sooner (deferred; integration risk is low).
+**Consequences:** UI is built once over richer engine output; slice numbering is indicative.
