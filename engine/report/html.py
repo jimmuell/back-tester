@@ -9,7 +9,7 @@ from engine.config import APP_NAME
 from engine.metrics.core import Metrics
 from engine.montecarlo.bootstrap import BootstrapResult
 from engine.montecarlo.shuffle import ShuffleResult
-from engine.validation.benchmarks import BuyHoldResult
+from engine.validation.benchmarks import BuyHoldResult, RandomEntryResult
 from engine.validation.splits import SplitResult
 from engine.validation.walkforward import WalkForwardResult
 
@@ -345,6 +345,50 @@ def _walkforward_section(wf: WalkForwardResult) -> str:
 </section>"""
 
 
+def _random_entry_section(re: RandomEntryResult) -> str:
+    beats_cls = "pos" if re.beats_random else "neg"
+    beats_label = (
+        f"✓ Beats random entry (P{int(re.threshold * 100)})"
+        if re.beats_random
+        else f"✗ Does not beat random entry (P{int(re.threshold * 100)})"
+    )
+    rank_pct = f"{re.net_percentile_rank * 100:.1f}th percentile"
+    p = re.random_net_pctiles
+
+    def _prow(label: str, val: float) -> str:
+        cls = "pos" if val >= 0 else "neg"
+        return (
+            f"<tr><td>{html.escape(label)}</td>"
+            f'<td class="{cls}">{html.escape(_fmt_usd(val))}</td></tr>\n'
+        )
+
+    strat_cls = "pos" if re.strategy_net >= 0 else "neg"
+
+    return f"""<section>
+  <h2>Random-Entry Benchmark — Signal vs Exposure
+    <span class="sub"> ({html.escape(str(re.n_iterations))} iterations,
+      {html.escape(str(re.n_trades))} trades,
+      {html.escape(f"{re.long_fraction:.0%}")} long)</span>
+  </h2>
+  <p class="sub">Random entries with the same trade count, holding-period distribution,
+    and long/short mix — does the signal add value beyond pure exposure?
+    Works in bar-index space; only valid when bars match the strategy instrument/period.</p>
+  <table class="kpi">
+    <tbody>
+      <tr><td>Strategy Net</td>
+          <td class="{strat_cls}">{html.escape(_fmt_usd(re.strategy_net))}</td></tr>
+      {_prow("Random P95", p[95])}
+      {_prow("Random P75", p[75])}
+      {_prow("Random P50 (median)", p[50])}
+      {_prow("Random P25", p[25])}
+      {_prow("Random P5", p[5])}
+    </tbody>
+  </table>
+  <p>Percentile rank: <strong>{html.escape(rank_pct)}</strong></p>
+  <p><strong class="{beats_cls}">{html.escape(beats_label)}</strong></p>
+</section>"""
+
+
 def _buyhold_section(bh: BuyHoldResult) -> str:
     beats_cls = "pos" if bh.beats_buy_hold else "neg"
     beats_label = "✓ Beats buy-and-hold" if bh.beats_buy_hold else "✗ Does not beat buy-and-hold"
@@ -385,6 +429,7 @@ def render_report(
     split: SplitResult | None = None,
     walk: WalkForwardResult | None = None,
     buy_hold: BuyHoldResult | None = None,
+    random_entry_result: RandomEntryResult | None = None,
 ) -> str:
     app_name = html.escape(title or APP_NAME)
     generated_at = html.escape(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -443,6 +488,9 @@ def render_report(
     split_section = _split_section(split) if split is not None else ""
     walk_section = _walkforward_section(walk) if walk is not None else ""
     buyhold_section = _buyhold_section(buy_hold) if buy_hold is not None else ""
+    random_entry_section = (
+        _random_entry_section(random_entry_result) if random_entry_result is not None else ""
+    )
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -486,6 +534,7 @@ def render_report(
 {split_section}
 {walk_section}
 {buyhold_section}
+{random_entry_section}
 <footer>Research &amp; backtesting only — not financial advice.</footer>
 </body>
 </html>"""
