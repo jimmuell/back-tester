@@ -9,6 +9,7 @@ from engine.config import APP_NAME
 from engine.metrics.core import Metrics
 from engine.montecarlo.bootstrap import BootstrapResult
 from engine.montecarlo.shuffle import ShuffleResult
+from engine.orchestrator import ValidationResult
 from engine.validation.benchmarks import BuyHoldResult, RandomEntryResult
 from engine.validation.regimes import RegimeBreakdown
 from engine.validation.splits import SplitResult
@@ -474,6 +475,18 @@ def _buyhold_section(bh: BuyHoldResult) -> str:
 </section>"""
 
 
+def _skipped_section(skipped: list[str]) -> str:
+    if not skipped:
+        return ""
+    items = "\n".join(f"  <li>{html.escape(s)}</li>" for s in skipped)
+    return f"""<section>
+  <h2>Skipped Analyses</h2>
+  <ul class="sub">
+{items}
+  </ul>
+</section>"""
+
+
 def render_report(
     metrics: Metrics,
     *,
@@ -486,6 +499,8 @@ def render_report(
     buy_hold: BuyHoldResult | None = None,
     random_entry_result: RandomEntryResult | None = None,
     regime: RegimeBreakdown | None = None,
+    regimes: dict[str, RegimeBreakdown] | None = None,
+    skipped: list[str] | None = None,
 ) -> str:
     app_name = html.escape(title or APP_NAME)
     generated_at = html.escape(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -547,7 +562,16 @@ def render_report(
     random_entry_section = (
         _random_entry_section(random_entry_result) if random_entry_result is not None else ""
     )
-    regime_section = _regime_section(regime) if regime is not None else ""
+
+    # Merge old single-regime param and new multi-regime dict; new dict takes precedence.
+    all_regimes: dict[str, RegimeBreakdown] = {}
+    if regime is not None:
+        all_regimes[regime.scheme] = regime
+    if regimes is not None:
+        all_regimes.update(regimes)
+    regime_sections = "".join(_regime_section(rb) for rb in all_regimes.values())
+
+    skipped_section = _skipped_section(skipped) if skipped else ""
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -592,7 +616,8 @@ def render_report(
 {walk_section}
 {buyhold_section}
 {random_entry_section}
-{regime_section}
+{regime_sections}
+{skipped_section}
 <footer>Research &amp; backtesting only — not financial advice.</footer>
 </body>
 </html>"""
@@ -601,3 +626,37 @@ def render_report(
 def write_report(metrics: Metrics, path: Path, **kw: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(render_report(metrics, **kw), encoding="utf-8")  # type: ignore[arg-type]
+
+
+def render_full_report(
+    result: ValidationResult,
+    *,
+    title: str | None = None,
+    meta: dict[str, str] | None = None,
+) -> str:
+    """Render a complete HTML report from a ValidationResult."""
+    return render_report(
+        result.metrics,
+        title=title,
+        meta=meta,
+        shuffle=result.shuffle,
+        bootstrap=result.bootstrap,
+        split=result.split,
+        walk=result.walk_forward,
+        buy_hold=result.buy_hold,
+        random_entry_result=result.random_entry,
+        regimes=result.regimes or None,
+        skipped=result.skipped or None,
+    )
+
+
+def write_full_report(
+    result: ValidationResult,
+    path: Path,
+    *,
+    title: str | None = None,
+    meta: dict[str, str] | None = None,
+) -> None:
+    """Write a complete HTML report from a ValidationResult to disk."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(render_full_report(result, title=title, meta=meta), encoding="utf-8")
